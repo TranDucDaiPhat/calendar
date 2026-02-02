@@ -292,6 +292,10 @@
             updateIfDateChanged();
         });
 
+        document.addEventListener("DOMContentLoaded", () => {
+            renderCalendar();
+        });
+
 
         renderCalendar();
         startOfflineDayWatcher();
