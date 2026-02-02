@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Lịch dương & âm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            height: 600px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* Thanh mô tả */
+        .top-bar {
+            max-width: 500px;
+            margin: 0 auto 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .legend-column {
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+        }
+
+        .legend-column span {
+            line-height: 1.4;
+        }
+
+        .controls button {
+            padding: 3px 9px;
+            margin-left: 6px;
+            cursor: pointer;
+        }
+
+
+        .solar {
+            color: #000;
+            font-weight: bold;
+        }
+
+        .lunar {
+            color: #777;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            width: 70px;
+            height: 55px;
+            text-align: center;
+            vertical-align: top;
+            position: relative;
+            padding-top: 10px;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        .am {
+            font-size: 12px;
+            color: #777;
+        }
+
+        /* Dấu chấm ngày hiện tại */
+        .today-dot {
+            width: 8px;
+            height: 8px;
+            background: green;
+            border-radius: 50%;
+            position: absolute;
+            top: 4px;
+            right: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2 id="title"></h2>
+
+    <div class="top-bar">
+        <div class="legend-column">
+            <span class="solar">■ Lịch dương</span>
+            <span class="lunar">■ Lịch âm</span>
+        </div>
+
+        <div class="controls">
+            <button onclick="changeMonth(-1)">◀</button>
+            <button onclick="changeMonth(1)">▶</button>
+        </div>
+    </div>
+
+
+    <table id="calendar"></table>
+
+    <script>
+        // ================= ÂM LỊCH =================
+        function jdFromDate(dd, mm, yy) {
+            let a = Math.floor((14 - mm) / 12);
+            let y = yy + 4800 - a;
+            let m = mm + 12 * a - 3;
+            return dd + Math.floor((153 * m + 2) / 5) + 365 * y +
+                Math.floor(y / 4) - Math.floor(y / 100) +
+                Math.floor(y / 400) - 32045;
+        }
+
+        function convertSolar2Lunar(dd, mm, yy, timeZone) {
+            let dayNumber = jdFromDate(dd, mm, yy);
+            let k = Math.floor((dayNumber - 2415021.076998695) / 29.530588853);
+            let monthStart = getNewMoonDay(k + 1, timeZone);
+            if (monthStart > dayNumber) monthStart = getNewMoonDay(k, timeZone);
+
+            let a11 = getLunarMonth11(yy, timeZone);
+            let b11 = a11;
+            let lunarYear;
+
+            if (a11 >= monthStart) {
+                lunarYear = yy;
+                a11 = getLunarMonth11(yy - 1, timeZone);
+            } else {
+                lunarYear = yy + 1;
+                b11 = getLunarMonth11(yy + 1, timeZone);
+            }
+
+            let lunarDay = dayNumber - monthStart + 1;
+            let diff = Math.floor((monthStart - a11) / 29);
+            let lunarMonth = diff + 11;
+
+            if (b11 - a11 > 365) {
+                let leapMonthDiff = getLeapMonthOffset(a11, timeZone);
+                if (diff >= leapMonthDiff) lunarMonth = diff + 10;
+            }
+
+            if (lunarMonth > 12) lunarMonth -= 12;
+            if (lunarMonth >= 11 && diff < 4) lunarYear--;
+
+            return [lunarDay, lunarMonth, lunarYear];
+        }
+
+        function getNewMoonDay(k, timeZone) {
+            return Math.floor(NewMoon(k) + 0.5 + timeZone / 24);
+        }
+
+        function getLunarMonth11(yy, timeZone) {
+            let off = jdFromDate(31, 12, yy) - 2415021;
+            let k = Math.floor(off / 29.530588853);
+            let nm = getNewMoonDay(k, timeZone);
+            if (getSunLongitude(nm, timeZone) >= 9)
+                nm = getNewMoonDay(k - 1, timeZone);
+            return nm;
+        }
+
+        function getLeapMonthOffset(a11, timeZone) {
+            let k = Math.floor((a11 - 2415021.076998695) / 29.530588853);
+            let last = 0, i = 1;
+            let arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone);
+            do {
+                last = arc;
+                i++;
+                arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone);
+            } while (arc !== last && i < 14);
+            return i - 1;
+        }
+
+        function NewMoon(k) {
+            let T = k / 1236.85;
+            let T2 = T * T;
+            let T3 = T2 * T;
+            return 2415020.75933 + 29.53058868 * k +
+                0.0001178 * T2 - 0.000000155 * T3;
+        }
+
+        function getSunLongitude(jdn, timeZone) {
+            return Math.floor(SunLongitude(jdn - 0.5 - timeZone / 24) / Math.PI * 6);
+        }
+
+        function SunLongitude(jdn) {
+            let T = (jdn - 2451545.0) / 36525;
+            let M = 357.52910 + 35999.05030 * T;
+            let L0 = 280.46645 + 36000.76983 * T;
+            let DL = (1.914600 - 0.004817 * T) * Math.sin(Math.PI / 180 * M);
+            return (L0 + DL) * Math.PI / 180;
+        }
+
+        // ================= LỊCH =================
+        const today = new Date();
+        let currentYear = today.getFullYear();
+        let currentMonth = today.getMonth();
+
+        function renderCalendar() {
+            document.getElementById("title").innerText =
+                `Tháng ${currentMonth + 1} / ${currentYear}`;
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+
+            let html = "<tr>";
+            days.forEach(d => html += `<th>${d}</th>`);
+            html += "</tr><tr>";
+
+            for (let i = 0; i < firstDay; i++) html += "<td></td>";
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const lunar = convertSolar2Lunar(d, currentMonth + 1, currentYear, 7);
+                const isToday =
+                    d === today.getDate() &&
+                    currentMonth === today.getMonth() &&
+                    currentYear === today.getFullYear();
+
+                html += `<td>
+                    ${d}
+                    ${isToday ? '<div class="today-dot"></div>' : ''}
+                    <br><span class="am">${lunar[0]}/${lunar[1]}</span>
+                </td>`;
+
+                if ((d + firstDay) % 7 === 0) html += "</tr><tr>";
+            }
+
+            html += "</tr>";
+            document.getElementById("calendar").innerHTML = html;
+        }
+
+        function changeMonth(step) {
+            currentMonth += step;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        }
+
+        renderCalendar();
+    </script>
+
+</body>
+
+</html>
