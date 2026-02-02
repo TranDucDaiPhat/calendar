@@ -256,23 +256,22 @@
             renderCalendar();
         }
 
+        function isNewDay(oldDate, newDate) {
+            return newDate.setHours(0, 0, 0, 0) >
+                oldDate.setHours(0, 0, 0, 0);
+        }
+
         function updateIfDateChanged() {
             const now = new Date();
 
-            if (
-                now.getDate() !== today.getDate() ||
-                now.getMonth() !== today.getMonth() ||
-                now.getFullYear() !== today.getFullYear()
-            ) {
+            if (isNewDay(today, now)) {
                 today = now;
-
-                // Nếu đang xem tháng hiện tại → cập nhật lại dấu chấm
                 currentYear = today.getFullYear();
                 currentMonth = today.getMonth();
-
                 renderCalendar();
             }
         }
+
 
         function startOfflineDayWatcher() {
             // Kiểm tra ngay khi mở / resume từ sleep
@@ -281,8 +280,23 @@
             setInterval(updateIfDateChanged, 60 * 1000);
         }
 
+        // Khi quay lại tab
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) {
+                updateIfDateChanged();
+            }
+        });
+
+        // Khi focus lại cửa sổ
+        window.addEventListener("focus", () => {
+            updateIfDateChanged();
+        });
+
+
         renderCalendar();
         startOfflineDayWatcher();
+
+
     </script>
 
 </body>
