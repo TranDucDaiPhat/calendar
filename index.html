@@ -205,7 +205,7 @@
         }
 
         // ================= LỊCH =================
-        const today = new Date();
+        let today = new Date();
         let currentYear = today.getFullYear();
         let currentMonth = today.getMonth();
 
@@ -256,7 +256,33 @@
             renderCalendar();
         }
 
+        function updateIfDateChanged() {
+            const now = new Date();
+
+            if (
+                now.getDate() !== today.getDate() ||
+                now.getMonth() !== today.getMonth() ||
+                now.getFullYear() !== today.getFullYear()
+            ) {
+                today = now;
+
+                // Nếu đang xem tháng hiện tại → cập nhật lại dấu chấm
+                currentYear = today.getFullYear();
+                currentMonth = today.getMonth();
+
+                renderCalendar();
+            }
+        }
+
+        function startOfflineDayWatcher() {
+            // Kiểm tra ngay khi mở / resume từ sleep
+            updateIfDateChanged();
+
+            setInterval(updateIfDateChanged, 60 * 1000);
+        }
+
         renderCalendar();
+        startOfflineDayWatcher();
     </script>
 
 </body>
