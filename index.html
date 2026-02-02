@@ -8,9 +8,10 @@
         body {
             font-family: Arial, sans-serif;
             height: 600px;
+            background-color: #f0f0f0;
         }
 
-        h2 {
+        h1 {
             text-align: center;
             margin-bottom: 5px;
         }
@@ -22,8 +23,7 @@
 
         /* Thanh mô tả */
         .top-bar {
-            max-width: 500px;
-            margin: 0 auto 10px;
+            margin: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -32,7 +32,7 @@
         .legend-column {
             display: flex;
             flex-direction: column;
-            font-size: 13px;
+            font-size: 18px;
         }
 
         .legend-column span {
@@ -40,7 +40,7 @@
         }
 
         .controls button {
-            padding: 3px 9px;
+            padding: 6px 15px;
             margin-left: 6px;
             cursor: pointer;
         }
@@ -56,8 +56,10 @@
         }
 
         table {
+            width: 100%;
             border-collapse: collapse;
             margin: auto;
+            font-size: 18px;
         }
 
         th,
@@ -69,10 +71,12 @@
             vertical-align: top;
             position: relative;
             padding-top: 10px;
+            background-color: white;
+            border: 0.5px solid rgb(79, 79, 79);
         }
 
         th {
-            background: #eee;
+            background: #dcdcdc;
         }
 
         .am {
@@ -82,8 +86,8 @@
 
         /* Dấu chấm ngày hiện tại */
         .today-dot {
-            width: 8px;
-            height: 8px;
+            width: 9px;
+            height: 9px;
             background: green;
             border-radius: 50%;
             position: absolute;
@@ -95,7 +99,7 @@
 
 <body>
 
-    <h2 id="title"></h2>
+    <h1 id="title"></h1>
 
     <div class="top-bar">
         <div class="legend-column">
