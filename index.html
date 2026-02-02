@@ -280,6 +280,18 @@
             setInterval(updateIfDateChanged, 60 * 1000);
         }
 
+        // Khi quay lại tab
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) {
+                updateIfDateChanged();
+            }
+        });
+
+        // Khi focus lại cửa sổ
+        window.addEventListener("focus", () => {
+            updateIfDateChanged();
+        });
+
         renderCalendar();
         startOfflineDayWatcher();
 
